@@ -5,7 +5,7 @@
     # Universelles Modul für dynamische Hardware-Erkennung an beliebigem PC
     (modulesPath + "/installer/scan/not-detected.nix")
   ];
-
+  nixpkgs.config.allowUnfree = true;
   # --- BOOTLOADER & HARDWARE FIXING ---
   boot.loader.systemd-boot.enable = true;
   boot.loader.systemd-boot.configurationLimit = 10; # Verhindert volles /boot
