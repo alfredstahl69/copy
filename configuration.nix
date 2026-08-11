@@ -2,15 +2,16 @@
 
 {
   imports = [
+    # Universelles Modul für dynamische Hardware-Erkennung an beliebigem PC
     (modulesPath + "/installer/scan/not-detected.nix")
   ];
 
   # --- BOOTLOADER & HARDWARE FIXING ---
   boot.loader.systemd-boot.enable = true;
   boot.loader.systemd-boot.configurationLimit = 10; # Verhindert volles /boot
-  boot.loader.efi.canTouchEfiVariables = false;     # Verhindert NVRAM-Fehler auf Fremd-PCs
+  boot.loader.efi.canTouchEfiVariables = false;     # Verhindert NVRAM-Einträge auf Fremd-PCs
 
-  # Fügt Memtest86+ direkt als Auswahloption ins Bootmenü ein!
+  # Memtest86+ direkt als Auswahloption ins Bootmenü einfügen
   boot.loader.systemd-boot.memtest86.enable = true;
 
   # --- KERNEL MODULE FÜR USB-C, THUNDERBOLT & NVMe ---
@@ -20,10 +21,18 @@
   ];
   boot.kernelModules = [ "kvm-intel" "kvm-amd" ];
 
-  # --- HARDWARE KOMPATIBILITÄT ---
+  # --- HARDWARE KOMPATIBILITÄT & GRAFIK-FIX ---
   hardware.enableRedistributableFirmware = true;
   hardware.graphics.enable = true;
-  services.xserver.videoDrivers = [ "modesetting" "fbdev" "amdgpu" "nvidia" "nouveau" ];
+
+  # Behebt den 'null:null'-Fehler bei der NVIDIA Assertion
+  hardware.nvidia = {
+    modesetting.enable = true;
+    open = false; # Nutzen des stabilen proprietären Treibers
+  };
+
+  # Universelle Treiber (ohne nouveau, da nvidia geladen wird)
+  services.xserver.videoDrivers = [ "modesetting" "fbdev" "amdgpu" "nvidia" ];
 
   # ZRAM (Arbeitsspeicher-Kompression im RAM, schont USB-NVMe Schreibzyklen)
   zramSwap.enable = true;
@@ -47,10 +56,10 @@
   environment.systemPackages = with pkgs; [
     # Disk & System Diagnostics
     smartmontools   # Festplatten-Gesundheit (smartctl)
-    nvme-cli        # NVMe SSD Status & Spezifische Tests
+    nvme-cli        # NVMe SSD Status
     btrfs-progs     # Btrfs Repairs & Scrubbing
     parted          # Partitionstabellen-Analyse
-    gparted         # CLI/TUI Tools für Dateisysteme
+    gparted         # GUI-Tool für Dateisysteme
     testdisk        # Daten- & Partitions-Wiederherstellung
     ddrescue        # Rettung defekter Datenträger
 
